@@ -1,2 +1,5 @@
 # twelve
-Like 11ty, but this goes up to 12
+
+[![Build Status](https://travis-ci.org/ocramz/twelve.png)](https://travis-ci.org/ocramz/twelve)
+
+TODO Description.
