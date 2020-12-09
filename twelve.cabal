@@ -38,6 +38,7 @@ library
                      , profunctors
                      , text
                      , xml-conduit
+                     , xml-types
 
 executable twelve
   default-language:    Haskell2010
