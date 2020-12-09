@@ -10,34 +10,54 @@ import Data.Bifunctor (Bifunctor (..))
 import Data.Char (digitToInt, isAlpha, isDigit, isPunctuation)
 import qualified Data.Text as T (Text, pack)
 import Data.Void
+
+-- megaparsec
 import Text.Megaparsec ( MonadParsec (..), Parsec, ParsecT, parse, parseTest, runParserT, satisfy)
 import Text.Megaparsec.Char (char, digitChar, space1, string)
 import qualified Text.Megaparsec.Char.Lexer as L (decimal, lexeme, scientific, skipBlockComment, skipLineComment, space, symbol)
 import Text.Megaparsec.Error (ErrorFancy (..), ParseError (..), ParseErrorBundle (..), errorBundlePretty)
 import Text.Megaparsec.Pos (Pos, SourcePos, initialPos, mkPos)
 
-import Data.ByteString (ByteString)
-
-
-import Control.Lens (Prism, (%%~), traverseOf)
+-- bytestring
+import qualified Data.ByteString.Lazy as LBS (ByteString, readFile)
+-- lens
+import Control.Lens (Prism, (^..), (...), traverseOf)
+-- profunctors
 import Data.Profunctor.Choice (Choice(..))
+
 import Text.XML (Document, Element(..), Node(..))
+import Text.Xml.Lens (AsHtmlDocument(..), _HtmlDocument, html, name)
 import Text.Xml.Lens.LowLevel (_NodeContent)
 
 
+-- >>> let quasiXml = "<html><br><br></html>" :: BL.ByteString
+-- >>> quasiXml ^.. html...name
+
+htmly :: LBS.ByteString
+htmly = "<html><br><br></html>"
+
+baz = htmly ^.. html ... name
 
 -- traverseOf _NodeContent
 --   :: Applicative f => (Text -> f Text) -> Node -> f Node
 
-parsePattern :: T.Text -> Either ParseE FilePath
-parsePattern = parse stachePattern ""
+parseOrPass :: Applicative f =>
+               (FilePath -> f T.Text) -- load, parse, expand references and flatten
+            -> T.Text
+            -> f T.Text
+parseOrPass act t = case parsePattern t of
+  Left _ -> pure t
+  Right fp -> act fp
 
-stachePattern :: Parser FilePath
-stachePattern = stache html
+parsePattern :: T.Text -> Either ParseE FilePath
+parsePattern = parse stachePatternP ""
+
+stachePatternP :: Parser FilePath
+stachePatternP = stache htmlP
 
 -- | parse only ".html" filenames
-html :: Parser FilePath
-html = filename "html"
+htmlP :: Parser FilePath
+htmlP = filename "html"
 
 filename :: String -> Parser FilePath
 filename ext = do

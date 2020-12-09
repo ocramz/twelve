@@ -4,14 +4,21 @@ module CLI.Build where
 -- directory
 import System.Directory (makeAbsolute, listDirectory)
 -- filepath
-import System.FilePath.Posix (takeExtension)
+import System.FilePath.Posix (takeExtension, (</>))
 
--- import CLI
+-- import Text.Html (parsePattern)
 
-paths :: FilePath -> IO [FilePath]
-paths fp = do
-  fpnorm <- makeAbsolute fp
-  listDirectory fpnorm
+htmlPaths :: FilePath -> IO [FilePath]
+htmlPaths = paths ".html"
+
+paths :: String
+      -> FilePath -- ^ directory path of template files
+      -> IO [FilePath]
+paths fext dp = do
+  dpnorm <- makeAbsolute dp
+  fps <- listDirectory dpnorm
+  let fpaths = map (dp </>) $ filter (\fp -> takeExtension fp == fext) fps
+  pure fpaths
 
 
 -- loadModelFromDir dp = do
