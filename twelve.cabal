@@ -21,10 +21,12 @@ library
   exposed-modules:     CLI
                        CLI.Init
                        CLI.Build
+                       Config
                        Text.Html
                        Text.Xml.Lens
                        Text.Xml.Lens.LowLevel
   build-depends:       base >= 4.7 && < 5
+                     , aeson
                      , bytestring
                      , containers
                      , directory

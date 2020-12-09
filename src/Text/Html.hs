@@ -60,12 +60,12 @@ loadAndProcess fp = do
     Right (Document dpre el dpost) -> do
       el' <- flip nodeContents el $ \t ->
         case parsePattern t of
-          Right fpInner -> loadAndProcess fpInner
-          Left _ -> pure t
+          Right fpIn -> loadAndProcess fpIn -- NB fpIn must exist in the input dir
+          Left _ -> pure t -- if parse fails, return original node content
       let
         doc' = Document dpre el' dpost
         tl = renderText def doc'
-      pure $ TL.toStrict tl -- this will suck
+      pure $ TL.toStrict tl -- this will suck, performance-wise
 
 -- | all NodeContent's
 nodeContents :: Applicative f => (T.Text -> f T.Text) -> Element -> f Element
