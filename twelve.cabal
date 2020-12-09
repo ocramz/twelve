@@ -18,16 +18,22 @@ library
   default-language:    Haskell2010
   ghc-options:         -Wall
   hs-source-dirs:      src
-  exposed-modules:     Text.Html
+  exposed-modules:     CLI
+                       CLI.Init
+                       CLI.Build
+                       Text.Html
                        Text.Xml.Lens
                        Text.Xml.Lens.LowLevel
   build-depends:       base >= 4.7 && < 5
                      , bytestring
                      , containers
+                     , directory
+                     , filepath
                      , html-conduit
                      , lens
                      , megaparsec
                      , mtl
+                     , optparse-applicative
                      , parser-combinators
                      , profunctors
                      , text
