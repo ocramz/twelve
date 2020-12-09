@@ -27,6 +27,7 @@ library
                      , html-conduit
                      , lens
                      , megaparsec
+                     , mtl
                      , parser-combinators
                      , profunctors
                      , text
