@@ -7,8 +7,17 @@ import Options.Applicative (Parser, command, customExecParser, execParser, flag'
 
 {- commands
 
-* init
-* build
+* init:
+  - check if config file is present
+  - CLI : input dir for templates
+  - CLI : output dir
+  - write config file
+
+* build :
+  - read config (input, output dir)
+  - CLI : input filepath(s)
+  - assemble result(s)
+  - write file(s)
 
 -}
 
