@@ -52,19 +52,6 @@ baz = doc ^.. html . texts
 --   :: Applicative f => (Text -> f Text) -> Node -> f Node
 
 
-
--- | all NodeContent's
-nodeContents :: Applicative f => (T.Text -> f T.Text) -> Element -> f Element
-nodeContents = elemNodes . nodeContent
-
-elemNodes :: Traversal' Element Node
-elemNodes f (Element en ea ens) = Element <$> pure en <*> pure ea <*> traverse f ens
-
-nodeContent :: Traversal' Node T.Text
-nodeContent f = \case
-  NodeContent t -> NodeContent <$> f t
-  x -> pure x
-
 loadAndProcess :: FilePath -> IO T.Text
 loadAndProcess fp = do
   bs <- LBS.readFile fp
@@ -78,17 +65,20 @@ loadAndProcess fp = do
       let
         doc' = Document dpre el' dpost
         tl = renderText def doc'
-      pure $ TL.toStrict tl
+      pure $ TL.toStrict tl -- this will suck
 
+-- | all NodeContent's
+nodeContents :: Applicative f => (T.Text -> f T.Text) -> Element -> f Element
+nodeContents = elemNodes . nodeContent
 
+elemNodes :: Traversal' Element Node
+elemNodes f (Element en ea ens) = Element <$> pure en <*> pure ea <*> traverse f ens
 
-parseOrPass :: Applicative f =>
-               (FilePath -> f T.Text) -- load, parse, expand references and flatten
-            -> T.Text
-            -> f T.Text
-parseOrPass act t = case parsePattern t of
-  Left _ -> pure t
-  Right fp -> act fp
+nodeContent :: Traversal' Node T.Text
+nodeContent f = \case
+  NodeContent t -> NodeContent <$> f t
+  x -> pure x
+
 
 parsePattern :: T.Text -> Either ParseE FilePath
 parsePattern = parse stachePatternP ""

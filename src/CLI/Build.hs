@@ -6,7 +6,7 @@ import System.Directory (makeAbsolute, listDirectory)
 -- filepath
 import System.FilePath.Posix (takeExtension, (</>))
 
--- import Text.Html (parsePattern)
+-- import Text.Html (loadAndProcess)
 
 htmlPaths :: FilePath -> IO [FilePath]
 htmlPaths = paths ".html"
