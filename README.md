@@ -48,6 +48,8 @@ For example, say we want to splice the content of `card1.html` into some list it
 <div>Hello from card 1 ! </div>
 ```
 
+Let's try building `base.html` and look at the result :
+
 ```
 $ twelve build -f base.html
 ```
