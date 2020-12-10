@@ -18,9 +18,9 @@ import Prelude hiding (writeFile)
 cliBuild :: Config
          -> FilePath -- ^ file to be processed
          -> IO ()
-cliBuild (CD din dout) fp = do
+cliBuild cfg@(CD din dout) fp = do
   fpsIn <- htmlPaths din
-  t <- loadAndProcess fpsIn fp
+  t <- loadAndProcess cfg fpsIn fp
   let fpout = replaceDirectory fp dout
   writeFile fpout t
 
@@ -33,7 +33,8 @@ paths :: String
 paths fext dp = do
   dpnorm <- makeAbsolute dp
   fps <- listDirectory dpnorm
-  let fpaths = map (dp </>) $ filter (\fp -> takeExtension fp == fext) fps
+  fpsAbs <- traverse (\f -> makeAbsolute $ dp </> f) fps
+  let fpaths = filter (\fp -> takeExtension fp == fext) fpsAbs
   pure fpaths
 
 

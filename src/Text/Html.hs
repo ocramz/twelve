@@ -25,6 +25,10 @@ import Text.Megaparsec.Pos (Pos, SourcePos, initialPos, mkPos)
 import qualified Data.ByteString.Lazy as LBS (ByteString, readFile)
 -- containers
 import qualified Data.Map as M (Map, fromList)
+-- directory
+import System.Directory (makeAbsolute)
+-- filepath
+import System.FilePath.Posix (takeExtension, (</>))
 -- lens
 -- import Control.Lens (Traversal', Prism, (^?), (^..), (...), over, (.~))
 -- text
@@ -36,6 +40,8 @@ import Text.XML (Document(..), Prologue(..), Element(..), Node(..), readFile, pa
 import Data.XML.Types (Name(..))
 -- import Text.Xml.Lens (AsHtmlDocument(..), _HtmlDocument, html, name, text, texts)
 -- import Text.Xml.Lens.LowLevel (_NodeContent)
+
+import Config (Config(..))
 
 import Prelude hiding (readFile)
 
@@ -52,34 +58,36 @@ docParse =
         ]
       ) []
 
-hits = let (Document _ el _) = docParse in flip nodeContents el $ \t ->
+hits :: IO Element
+hits = let (Document _ el _) = docParse in nodeContents el $ \t ->
   case parsePattern t of
-    Right x -> do
-      putStrLn x
-      pure $ T.pack x
+    Right _ -> pure $ T.pack "!!!"
     Left e -> error $ errorBundlePretty e
 
 -- 
 
-loadAndProcess :: [FilePath] -- ^ absolute paths of HTML files in input dir
+loadAndProcess :: Config
+               -> [FilePath] -- ^ absolute paths of HTML files in input dir
                -> FilePath -- ^ template file to be processed
                -> IO T.Text
-loadAndProcess inPaths fp = do
-  bs <- LBS.readFile fp
+loadAndProcess cfg@(CD dirIn _) inPaths fp = do
+  let
+    fpRel = dirIn </> fp
+  bs <- LBS.readFile fpRel
   let
     decSetts = def { psDecodeEntities = decodeHtmlEntities }
     encSetts = def { rsPretty = True, rsXMLDeclaration = False }
   case parseLBS decSetts bs of
     Left e -> error $ show e -- FIXME
     Right (Document dpre el dpost) -> do
-      el' <- flip nodeContents el $ \t ->
+      el' <- nodeContents el $ \t ->
         case parsePattern t of
-          Right fpIn -> do -- NB fpIn must exist in the input dir
-            if fpIn `elem` inPaths
+          Right fpIn -> do
+            fpInAbs <- makeAbsolute (dirIn </> fpIn)
+            if fpInAbs `elem` inPaths
               then do
-                putStrLn $ unwords [fpIn, "found in", unwords inPaths]
-                loadAndProcess inPaths fpIn
-              else error $ unwords [fpIn, "does not occur in", unwords inPaths ]
+                loadAndProcess cfg inPaths fpInAbs
+              else error $ unwords [fpInAbs, "does not occur in", unwords inPaths ]
           Left _ -> pure t -- if parse fails, return original node content
           -- Left e -> error $ errorBundlePretty e -- FIXME
       let
@@ -87,25 +95,42 @@ loadAndProcess inPaths fp = do
         tl = renderText encSetts doc'
       pure $ TL.toStrict tl -- this will suck, performance-wise
 
--- | all NodeContent's
-nodeContents :: Applicative f => (T.Text -> f T.Text) -> Element -> f Element
-nodeContents = elemNodes . nodeContent
 
--- elemNodes :: Traversal' Element Node
-elemNodes :: Applicative f =>
-             (Node -> f Node) -> Element -> f Element
-elemNodes f (Element en ea ens) = Element <$> pure en <*> pure ea <*> traverse f ens
+nodeContents :: Applicative f =>
+         Element -> (T.Text -> f T.Text) -> f Element
+nodeContents (Element en ea ens) f =
+  Element <$> pure en <*> pure ea <*> traverse goNodes ens
+  where
+    goNodes = \case
+      NodeElement (Element n a ns) ->
+        NodeElement <$> (Element <$> pure n <*> pure a <*> traverse goNodes ns)
+      NodeContent t ->
+        if
+          T.all isSpace t
+        then pure $ NodeContent "" -- get rid of whitespace
+        else NodeContent <$> f t
+      x -> pure x
 
--- nodeContent :: Traversal' Node T.Text
-nodeContent :: Applicative f =>
-               (T.Text -> f T.Text) -> Node -> f Node
-nodeContent f = \case
-  NodeContent t ->
-    if
-      T.all isSpace t
-    then pure $ NodeContent "" -- get rid of whitespace
-    else NodeContent <$> f t
-  x -> pure x
+-- -- | all NodeContent's
+-- nodeContents :: Applicative f => (T.Text -> f T.Text) -> Element -> f Element
+-- nodeContents = elemNodes . nodeContent
+
+-- -- elemNodes :: Traversal' Element Node
+-- elemNodes :: Applicative f =>
+--              (Node -> f Node) -> Element -> f Element
+-- elemNodes f (Element en ea ens) = Element <$> pure en <*> pure ea <*> traverse f ens
+
+-- -- nodeContent :: Traversal' Node T.Text
+-- nodeContent :: Applicative f =>
+--                (T.Text -> f T.Text) -> Node -> f Node
+-- nodeContent f = \case
+--   NodeContent t ->
+--     if
+--       T.all isSpace t
+--     then pure $ NodeContent "" -- get rid of whitespace
+--     else NodeContent <$> f t
+--   NodeElement (Element en eas enodes) -> traverse f enodes
+--   x -> pure x
 
 
 parsePattern :: T.Text -> Either ParseE FilePath
