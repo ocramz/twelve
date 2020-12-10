@@ -30,7 +30,7 @@ Available commands:
 
 * `init` initializes a project in the current directory, if there isn't one already (i.e. creates a config file and the input and output directories). The default behaviour can be overridden with command line parameters.
 
-* `build` :
+* `build` does the whole work : produces a full HTML file by starting from a given input template file and splicing in the content of all references:
 
 ```
 $ twelve build
