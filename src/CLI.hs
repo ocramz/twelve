@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 module CLI (cli, Command(..)) where
 
-import Control.Applicative (Alternative (..), some)
+import Control.Applicative (Alternative (..), some, optional)
 import Options.Applicative (Parser, command, customExecParser, execParser, flag', fullDesc, header, help, helper, info, long, metavar, prefs, progDesc, short, showDefault, showHelpOnEmpty, strOption, subparser, switch, value, (<**>))
 
 import Config (Config(..))
@@ -31,7 +31,7 @@ cli = customExecParser p opts
 
 data Command =
   Init Config
-  | Build FilePath
+  | Build (Maybe Config) FilePath
 
 commandP :: Parser Command
 commandP = subparser (
@@ -40,7 +40,7 @@ commandP = subparser (
          )
   where
     initP = Init <$> configP
-    buildP = Build <$> cliFileP
+    buildP = Build <$> optional configP <*> cliFileP
 
 
 cliFileP :: Parser FilePath

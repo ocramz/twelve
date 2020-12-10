@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/ocramz/twelve.png)](https://travis-ci.org/ocramz/twelve)
 
+[![Actions Status](https://github.com/ocramz/twelve/workflows/haskell.yml/badge.svg)](https://github.com/{user}/{repo}/actions)
+
 Like [11ty](https://www.11ty.dev/), but this goes to 12.
 
 ## What
@@ -80,7 +82,7 @@ Available commands:
 
 `twelve` has two commands: 
 
-* `init` initializes a project in the current directory, if there isn't one already (i.e. creates a config file and the input and output directories). The input directory contains the HTML templates that will be used for populating the final result.
+* `init` initializes a project in the current directory, if there isn't one already (i.e. it creates a config file and the input and output directories using the command line options `-i` and `-o`). The input directory contains the HTML templates that will be used for populating the final result.
 
 The default directories can be overridden with command line parameters.
 
@@ -88,10 +90,13 @@ The default directories can be overridden with command line parameters.
 
 ```
 $ twelve build
-Usage: twelve build -f FILEPATH
+Usage: twelve build [[-i|--dir-in DIR] [-o|--dir-out DIR]] -f FILEPATH
   Build an HTML page
 
 Available options:
+  -i,--dir-in DIR          input directory for HTML
+                           templates (default: "_templates")
+  -o,--dir-out DIR         output directory (default: "_site")
   -f FILEPATH              path of input file
 ```
 
