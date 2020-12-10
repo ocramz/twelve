@@ -4,6 +4,7 @@ module CLI (cli, Command(..)) where
 import Control.Applicative (Alternative (..), some)
 import Options.Applicative (Parser, command, customExecParser, execParser, flag', fullDesc, header, help, helper, info, long, metavar, prefs, progDesc, short, showDefault, showHelpOnEmpty, strOption, subparser, switch, value, (<**>))
 
+import Config (Config(..))
 
 {- commands
 
@@ -29,8 +30,8 @@ cli = customExecParser p opts
     desc = "twelve"
 
 data Command =
-  Init FilePath
-  | Build FilePath
+  Init Config
+  | Build Config FilePath
 
 commandP :: Parser Command
 commandP = subparser (
@@ -38,15 +39,19 @@ commandP = subparser (
   command "build" (info buildP (progDesc "Build website"))
          )
   where
-    initP = Init <$> cliDirP
-    buildP = Build <$> cliDirP
+    initP = Init <$> configP
+    buildP = Build <$> configP <*> cliFileP
 
 
-cliDirP :: Parser FilePath
-cliDirP = 
+cliFileP :: Parser FilePath
+cliFileP = 
   strOption (
-    short 'd' <>
-    long "dir" <>
-    value ".twelve" <>
-    showDefault
+    short 'f' <> metavar "FILEPATH" <> help "path of input file"
             )
+
+configP :: Parser Config
+configP = CD <$> inDirP <*> outDirP
+
+inDirP, outDirP :: Parser FilePath
+inDirP = strOption (short 'i' <> long "dir-in" <> value "_templates" <> showDefault <> metavar "DIR" <> help "input directory")
+outDirP = strOption (short 'o' <> long "dir-out" <> value "_site" <> showDefault <> metavar "DIR" <>help "output directory")

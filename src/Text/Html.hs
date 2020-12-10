@@ -26,41 +26,40 @@ import qualified Data.ByteString.Lazy as LBS (ByteString, readFile)
 -- containers
 import qualified Data.Map as M (Map)
 -- lens
-import Control.Lens (Traversal', Prism, (^?), (^..), (...), over, (.~))
--- profunctors
-import Data.Profunctor.Choice (Choice(..))
+-- import Control.Lens (Traversal', Prism, (^?), (^..), (...), over, (.~))
 -- text
 import qualified Data.Text as T (Text, pack)
 import qualified Data.Text.Lazy as TL (toStrict, fromStrict)
 
 import Text.XML (Document(..), Element(..), Node(..), parseLBS, def, renderText)
 import Data.XML.Types (Name)
-import Text.Xml.Lens (AsHtmlDocument(..), _HtmlDocument, html, name, text, texts)
-import Text.Xml.Lens.LowLevel (_NodeContent)
+-- import Text.Xml.Lens (AsHtmlDocument(..), _HtmlDocument, html, name, text, texts)
+-- import Text.Xml.Lens.LowLevel (_NodeContent)
 
 
 -- >>> let quasiXml = "<html><br><br></html>" :: BL.ByteString
 -- >>> quasiXml ^.. html ... name
 -- ["br","br"]
 
-doc :: LBS.ByteString
-doc = "<html><div>asdf</div><div>chuck</html>"
-
-baz = doc ^.. html . texts
-
--- traverseOf _NodeContent
---   :: Applicative f => (Text -> f Text) -> Node -> f Node
+-- doc :: LBS.ByteString
+-- doc = "<html><div>asdf</div><div>chuck</html>"
+-- baz = doc ^.. html . texts
 
 
-loadAndProcess :: FilePath -> IO T.Text
-loadAndProcess fp = do
+loadAndProcess :: [FilePath] -- ^ absolute paths of HTML files in input dir
+               -> FilePath -- ^ template file to be processed
+               -> IO T.Text
+loadAndProcess inPaths fp = do
   bs <- LBS.readFile fp
   case parseLBS def bs of
     Left e -> error $ show e -- FIXME
     Right (Document dpre el dpost) -> do
       el' <- flip nodeContents el $ \t ->
         case parsePattern t of
-          Right fpIn -> loadAndProcess fpIn -- NB fpIn must exist in the input dir
+          Right fpIn -> do -- NB fpIn must exist in the input dir
+            if fpIn `elem` inPaths
+              then loadAndProcess inPaths fpIn
+              else error $ unwords [fpIn, "does not occur in", unwords inPaths ]
           Left _ -> pure t -- if parse fails, return original node content
       let
         doc' = Document dpre el' dpost
@@ -71,10 +70,14 @@ loadAndProcess fp = do
 nodeContents :: Applicative f => (T.Text -> f T.Text) -> Element -> f Element
 nodeContents = elemNodes . nodeContent
 
-elemNodes :: Traversal' Element Node
+-- elemNodes :: Traversal' Element Node
+elemNodes :: Applicative f =>
+             (Node -> f Node) -> Element -> f Element
 elemNodes f (Element en ea ens) = Element <$> pure en <*> pure ea <*> traverse f ens
 
-nodeContent :: Traversal' Node T.Text
+-- nodeContent :: Traversal' Node T.Text
+nodeContent :: Applicative f =>
+               (T.Text -> f T.Text) -> Node -> f Node
 nodeContent f = \case
   NodeContent t -> NodeContent <$> f t
   x -> pure x

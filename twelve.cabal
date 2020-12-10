@@ -23,8 +23,6 @@ library
                        CLI.Build
                        Config
                        Text.Html
-                       Text.Xml.Lens
-                       Text.Xml.Lens.LowLevel
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , bytestring
@@ -32,12 +30,10 @@ library
                      , directory
                      , filepath
                      , html-conduit
-                     , lens
                      , megaparsec
                      , mtl
                      , optparse-applicative
                      , parser-combinators
-                     , profunctors
                      , text
                      , xml-conduit
                      , xml-types
