@@ -9,40 +9,7 @@ Like [11ty](https://www.11ty.dev/), but this goes to 12.
 `twelve` is a small and very simplified static site generator, inspired by 11ty.
 
 
-## Usage
 
-```
-$ twelve
-twelve, a little static website build tool
-
-Usage: twelve COMMAND
-  twelve lets you build an HTML page from a collection of templates. Please
-  refer to the README for details. github.com/ocramz/twelve
-
-Available options:
-  -h,--help                Show this help text
-
-Available commands:
-  init                     Initialize a 'twelve' project
-  build                    Build an HTML page
-```
-
-`twelve` has two commands: 
-
-* `init` initializes a project in the current directory, if there isn't one already (i.e. creates a config file and the input and output directories). The input directory contains the HTML templates that will be used for populating the final result.
-
-The default directories can be overridden with command line parameters.
-
-* `build` does the whole work : produces a full HTML file by starting from a given input template file and splicing in the content of all references:
-
-```
-$ twelve build
-Usage: twelve build -f FILEPATH
-  Build an HTML page
-
-Available options:
-  -f FILEPATH              path of input file
-```
 
 ## Why
 
@@ -91,6 +58,43 @@ First, you need to have the [`stack` build tool](https://haskellstack.org) alrea
 Then, build and copy the binary to a local `bin` directory with
 
     $ stack install
+    
+    
+## Usage
+
+```
+$ twelve
+twelve, a little static website build tool
+
+Usage: twelve COMMAND
+  twelve lets you build an HTML page from a collection of templates. Please
+  refer to the README for details. github.com/ocramz/twelve
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  init                     Initialize a 'twelve' project
+  build                    Build an HTML page
+```
+
+`twelve` has two commands: 
+
+* `init` initializes a project in the current directory, if there isn't one already (i.e. creates a config file and the input and output directories). The input directory contains the HTML templates that will be used for populating the final result.
+
+The default directories can be overridden with command line parameters.
+
+* `build` does the whole work : produces a full HTML file by starting from a given input template file and splicing in the content of all references:
+
+```
+$ twelve build
+Usage: twelve build -f FILEPATH
+  Build an HTML page
+
+Available options:
+  -f FILEPATH              path of input file
+```
+
     
 ## Contribute
 
