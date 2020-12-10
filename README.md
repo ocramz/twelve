@@ -79,6 +79,8 @@ This means that you can develop `card1` in isolation, and even easily reuse it i
 
 * Template files should be valid HTML splices, i.e. cannot be bare text.
 
+* All input files should have an `.html` file extension.
+
 * Template files can reference other ones up to an arbitrary depth, as long as the reference graph is acyclic. If you do have two templates that reference each other, well, you're asking for trouble.
 
 ## Why, in full
