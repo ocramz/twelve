@@ -134,6 +134,8 @@ Available options:
   -f FILEPATH              path of input file
 ```
 
+By default `build` will try to use the `twelve.json` config file. If that's not found, `twelve` will use the command line defaults, which can also be overridden here.
+
     
 ## Contribute
 
