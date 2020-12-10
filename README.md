@@ -1,8 +1,6 @@
 # twelve
 
-[![Build Status](https://travis-ci.org/ocramz/twelve.png)](https://travis-ci.org/ocramz/twelve)
-
-[![Actions Status](https://github.com/ocramz/twelve/workflows/haskell.yml/badge.svg)](https://github.com/{user}/{repo}/actions)
+![CI](https://github.com/ocramz/twelve/workflows/Haskell%20CI/badge.svg)
 
 Like [11ty](https://www.11ty.dev/), but this goes to 12.
 
