@@ -45,9 +45,13 @@ For example, say we want to splice the content of `card1.html` into the `body` t
 
 This means that you can develop `card1` in isolation, and even easily reuse it in multiple places within `base` or other files that mention it.
 
-## Build
+## Why, in full
 
-Set up your machine with the [`stack` build tool](https://haskellstack.org).
+Modern websites tend to accrete large amounts of CSS annotations around their HTML tags, and a module system can help in writing easily maintainable websites.
+
+## Installation
+
+First, you need to have the [`stack` build tool](https://haskellstack.org) already set up on your machine.
 
 Then, build and copy the binary to a local `bin` directory with
 
