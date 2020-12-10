@@ -7,13 +7,20 @@ import System.Directory (makeAbsolute, listDirectory)
 import System.FilePath.Posix (takeExtension, (</>), replaceDirectory)
 
 import Data.Text (Text)
-import Data.Text.Lazy.IO (writeFile)
+import qualified Data.Text.Lazy as TL (Text)
+import Data.Text.Lazy.IO (readFile, writeFile)
 
 import Text.Html (loadAndProcess)
 
 import Config (Config(..))
 
-import Prelude hiding (writeFile)
+import Prelude hiding (readFile, writeFile)
+
+
+buildTest :: Config -> FilePath -> IO TL.Text
+buildTest cfg@(CD din _) fp = do
+  fpsIn <- htmlPaths din
+  loadAndProcess cfg fpsIn fp
 
 cliBuild :: Config
          -> FilePath -- ^ file to be processed

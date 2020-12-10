@@ -9,6 +9,40 @@ Like [11ty](https://www.11ty.dev/), but this goes to 12.
 `twelve` is a small and very simplified static site generator, inspired by 11ty.
 
 
+## Usage
+
+```
+$ twelve
+twelve
+
+Usage: twelve COMMAND
+  twelve
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  init                     Initialize the environment
+  build                    Build website
+```
+
+`twelve` has two commands: 
+
+* `init` initializes a project in the current directory, if there isn't one already (i.e. creates a config file and the input and output directories). The default behaviour can be overridden with command line parameters.
+
+* `build` :
+
+```
+$ twelve build
+Usage: twelve build [-i|--dir-in DIR] [-o|--dir-out DIR] -f FILEPATH
+  Build website
+
+Available options:
+  -i,--dir-in DIR          input directory (default: "_templates")
+  -o,--dir-out DIR         output directory (default: "_site")
+  -f FILEPATH              path of input file
+```
+
 ## Why
 
 `twelve` was created for these reasons:

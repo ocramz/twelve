@@ -60,11 +60,12 @@ loadAndProcess cfg@(CD dirIn _) inPaths fp = do
 flatten :: Config -> [FilePath] -> TL.Text -> IO TL.Text
 flatten cfg@(CD dirIn _) inPaths tl =
   let
-    decSetts = def -- { psDecodeEntities = decodeHtmlEntities }
+    decSetts = def { psDecodeEntities = decodeHtmlEntities }
     encSetts = def { rsPretty = True, rsXMLDeclaration = False }
   in
     case parseMatch decSetts tl of
       MatchText tl' -> pure tl'
+      -- MatchDoc doc' -> pure $ renderText encSetts doc' -- DEBUG
       MatchDoc (Document dpre el dpost) -> do
         el' <- nodeContents el $ \t ->
           TL.toStrict <$> flatten cfg inPaths (TL.fromStrict t)
@@ -109,11 +110,6 @@ nodeContents (Element en ea ens) f =
         then pure $ NodeContent "" -- get rid of whitespace
         else NodeContent <$> f t
       x -> pure x
-
-
-
-parsePattern :: T.Text -> Either ParseE FilePath
-parsePattern = parse stachePatternP ""
 
 stachePatternP :: Parser FilePath
 stachePatternP = stache htmlP
