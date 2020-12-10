@@ -29,7 +29,7 @@ For example:
 
 Say you have `base.html` and `card1.html` :
 
-```
+```html
 <!-- base.html -->
 <html>
 <body>
@@ -38,7 +38,7 @@ Say you have `base.html` and `card1.html` :
 </html>
 ```
 
-```
+```html
 <!-- card1.html -->
 <ul>
 <li> Hello from card 1 ! </li>
