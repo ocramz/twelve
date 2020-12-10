@@ -14,7 +14,7 @@ cliInit cfg@(CD fpin fpout) = do
     then
       do
         cfge <- readConfig "twelve.json"
-        putStrLn "twelve : found pre-existing config file"
+        putStrLn "twelve : found pre-existing config file ./twelve.json"
         case cfge of
           Left e -> error e
           Right (CD din dout) -> do
@@ -23,7 +23,7 @@ cliInit cfg@(CD fpin fpout) = do
     else
       do
         writeConfig cfg "twelve.json"
-        putStrLn "twelve : written config file"
+        putStrLn "twelve : written ./twelve.json"
         createDirectoryIfMissing True fpin
         createDirectoryIfMissing True fpout
 
