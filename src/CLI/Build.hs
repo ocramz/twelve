@@ -17,10 +17,7 @@ import Config (Config(..))
 import Prelude hiding (readFile, writeFile)
 
 
-buildTest :: Config -> FilePath -> IO TL.Text
-buildTest cfg@(CD din _) fp = do
-  fpsIn <- htmlPaths din
-  loadAndProcess cfg fpsIn fp
+
 
 cliBuild :: Config
          -> FilePath -- ^ file to be processed
@@ -45,8 +42,15 @@ paths fext dp = do
   pure fpaths
 
 
+
 -- loadModelFromDir dp = do
 --   dpnorm <- makeAbsolute dp
 --   fps <- listDirectory dpnorm
 --   let fpaths = map (dp </>) $ filter (\fp -> takeExtension fp == ".yml") fps
 --   loadModel fpaths
+
+
+-- buildTest :: Config -> FilePath -> IO TL.Text
+-- buildTest cfg@(CD din _) fp = do
+--   fpsIn <- htmlPaths din
+--   loadAndProcess cfg fpsIn fp

@@ -5,7 +5,7 @@ module Text.Html where
 
 import Control.Applicative (Alternative (..), optional)
 import Control.Applicative.Combinators (some, between, count, sepBy)
-import Control.Monad (MonadPlus (..), join, void)
+import Control.Monad (MonadPlus (..), join, void, (<=<))
 import Control.Monad.State.Lazy (MonadState (..), StateT (..), evalStateT, execStateT, runStateT)
 import Data.Bifunctor (Bifunctor (..))
 import Data.Char (digitToInt, isAlpha, isDigit, isPunctuation, isSpace)
@@ -29,55 +29,67 @@ import qualified Data.Map as M (Map, fromList)
 import System.Directory (makeAbsolute)
 -- filepath
 import System.FilePath.Posix (takeExtension, (</>))
--- lens
--- import Control.Lens (Traversal', Prism, (^?), (^..), (...), over, (.~))
+
 -- text
 import qualified Data.Text as T (Text, all, pack, unpack)
 import qualified Data.Text.IO as T (putStrLn)
 import qualified Data.Text.Lazy as TL (Text, toStrict, fromStrict)
-import qualified Data.Text.Lazy.IO as TL (readFile)
+import qualified Data.Text.Lazy.IO as TL (readFile, putStrLn)
 
 import Text.XML (ParseSettings, Document(..), Prologue(..), Element(..), Node(..), readFile, parseText, parseLBS, def, renderText, psDecodeEntities, decodeHtmlEntities, rsPretty, rsXMLDeclaration)
 import Data.XML.Types (Name(..))
--- import Text.Xml.Lens (AsHtmlDocument(..), _HtmlDocument, html, name, text, texts)
--- import Text.Xml.Lens.LowLevel (_NodeContent)
+
 
 import Config (Config(..))
 
 import Prelude hiding (readFile)
 
 
-
-loadAndProcess :: Config
-               -> [FilePath] -- ^ absolute paths of HTML files in input dir
-               -> FilePath -- ^ template file to be processed
-               -> IO TL.Text
-loadAndProcess cfg@(CD dirIn _) inPaths fp = do
-  let fpRel = dirIn </> fp
-  tl0 <- TL.readFile fpRel
-  flatten cfg inPaths tl0
-
-flatten :: Config -> [FilePath] -> TL.Text -> IO TL.Text
-flatten cfg@(CD dirIn _) inPaths tl =
+-- top level
+loadAndProcess :: Foldable t =>
+                  Config -> t FilePath -> FilePath -> IO TL.Text
+loadAndProcess cfg inPaths fp = do
+  (Document dpre el dpost) <- loadDoc cfg fp
   let
     decSetts = def { psDecodeEntities = decodeHtmlEntities }
     encSetts = def { rsPretty = True, rsXMLDeclaration = False }
-  in
-    case parseMatch decSetts tl of
-      MatchText tl' -> pure tl'
-      -- MatchDoc doc' -> pure $ renderText encSetts doc' -- DEBUG
-      MatchDoc (Document dpre el dpost) -> do
-        el' <- nodeContents el $ \t ->
-          TL.toStrict <$> flatten cfg inPaths (TL.fromStrict t)
-        let
-          doc' = Document dpre el' dpost
-          tl' = renderText encSetts doc'
-        pure tl'
-      MatchRef fpIn -> do
-        fpInAbs <- makeAbsolute (dirIn </> fpIn)
-        if fpInAbs `elem` inPaths
-          then loadAndProcess cfg inPaths fpInAbs
-          else error $ unwords [fpInAbs, "does not occur in", unwords inPaths ]
+  el' <- expand cfg inPaths decSetts el
+  let doc' =  Document dpre el' dpost
+  pure $ renderText encSetts doc'
+
+-- | expand the element by dereferencing its internal pointers
+expand :: Foldable t =>
+          Config -> t FilePath -> ParseSettings -> Element -> IO Element
+expand cfg@(CD dirIn _) inPaths psetts el = expandElement el $ \t ->
+  case parseMatch psetts (TL.fromStrict t) of
+    MatchText tl -> pure $ NodeContent $ TL.toStrict tl
+    MatchRef fpIn -> do
+      fpInAbs <- makeAbsolute (dirIn </> fpIn)
+      if fpInAbs `elem` inPaths
+        then NodeElement <$> loadElementH cfg inPaths fpInAbs
+        else error $ unwords [fpInAbs, "is not present in the input directory"]
+    MatchDoc (Document _ elInner _) ->
+      NodeElement <$> expand cfg inPaths psetts elInner
+
+
+-- | Load an Element from a file path
+loadElementH :: Foldable t =>
+                Config -> t FilePath -> FilePath -> IO Element
+loadElementH cfg inPaths fp = do
+  (Document _ el _) <- loadDoc cfg fp
+  let
+    decSetts = def { psDecodeEntities = decodeHtmlEntities }
+  expand cfg inPaths decSetts el
+
+loadDoc :: Config -> FilePath -> IO Document
+loadDoc (CD dirIn _) fp = do
+  let fpRel = dirIn </> fp
+  tl0 <- TL.readFile fpRel
+  let
+    decSetts = def { psDecodeEntities = decodeHtmlEntities }
+  case parseText decSetts tl0 of
+    Right hdoc -> pure hdoc
+    Left e -> error $ unwords ["Error while attempting to parse", fp, ":", show e]
 
 
 data Match =
@@ -94,6 +106,23 @@ parseMatch opts tl = case parseText opts tl of
     Left _ -> MatchText tl
     Right fp -> MatchRef fp
   Right hdoc -> MatchDoc hdoc
+
+expandNode :: Applicative f =>
+              (T.Text -> f Node)  -- ^ references are expanded into ASTs
+           -> Node -> f Node
+expandNode f = \case
+  NodeElement (Element n a ns) ->
+    NodeElement <$> (Element <$> pure n <*> pure a <*> traverse (expandNode f) ns)
+  NodeContent t ->
+    if T.all isSpace t
+    then pure $ NodeContent "" -- get rid of whitespace
+    else f t
+  x -> pure x
+
+expandElement :: Applicative f =>
+                 Element -> (T.Text -> f Node) -> f Element
+expandElement (Element en ea ens) f =
+  Element <$> pure en <*> pure ea <*> traverse (expandNode f) ens
 
 
 -- | all NodeContent's
@@ -156,8 +185,10 @@ type ParseE = ParseErrorBundle T.Text Void
 -- squareBkts p = spaceConsumer *> between (symbol "[") (symbol "]") p
 
 
-doc :: LBS.ByteString
+doc, doc2 :: LBS.ByteString
 doc = "<html> <body>{{ card2.html }}</body></html>"
+
+doc2 = "<!DOCTYPE html><html></html>"
 
 docParse :: Document
 docParse =
@@ -169,8 +200,18 @@ docParse =
         ]
       ) []
 
-hits :: IO Element
-hits = let (Document _ el _) = docParse in nodeContents el $ \t ->
-  case parsePattern t of
-    Right _ -> pure $ T.pack "!!!"
-    Left e -> error $ errorBundlePretty e
+-- bla :: Document -> IO ()
+-- bla (Document dpre el dpost) = TL.putStrLn =<< do
+--   let
+--     encSetts = def { rsPretty = True, rsXMLDeclaration = False }
+--     cfg = CD "_templates" "_site"
+--   el' <- nodeContents el $ \t ->
+--     TL.toStrict <$> flatten cfg paths (TL.fromStrict t)
+--   let
+--     doc' = Document dpre el' dpost
+--     tl' = renderText encSetts doc'
+--   pure tl'
+
+
+
+-- paths = ["/Users/ocramz/Dropbox/RESEARCH/Haskell/twelve/_templates/base.html","/Users/ocramz/Dropbox/RESEARCH/Haskell/twelve/_templates/card1.html","/Users/ocramz/Dropbox/RESEARCH/Haskell/twelve/_templates/card2.html"]
