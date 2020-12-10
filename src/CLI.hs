@@ -26,21 +26,21 @@ cli :: IO Command
 cli = customExecParser p opts
   where
     p = prefs showHelpOnEmpty
-    opts = info (commandP <**> helper) (fullDesc <> progDesc desc <> header "twelve")
-    desc = "twelve"
+    opts = info (commandP <**> helper) (fullDesc <> progDesc desc <> header "twelve, a little static website build tool")
+    desc = "twelve lets you build an HTML page from a collection of templates. Please refer to the README for details.\n github.com/ocramz/twelve"
 
 data Command =
   Init Config
-  | Build Config FilePath
+  | Build FilePath
 
 commandP :: Parser Command
 commandP = subparser (
-  command "init" (info initP (progDesc "Initialize the environment")) <>
-  command "build" (info buildP (progDesc "Build website"))
+  command "init" (info initP (progDesc "Initialize a 'twelve' project")) <>
+  command "build" (info buildP (progDesc "Build an HTML page"))
          )
   where
     initP = Init <$> configP
-    buildP = Build <$> configP <*> cliFileP
+    buildP = Build <$> cliFileP
 
 
 cliFileP :: Parser FilePath
@@ -53,5 +53,5 @@ configP :: Parser Config
 configP = CD <$> inDirP <*> outDirP
 
 inDirP, outDirP :: Parser FilePath
-inDirP = strOption (short 'i' <> long "dir-in" <> value "_templates" <> showDefault <> metavar "DIR" <> help "input directory")
+inDirP = strOption (short 'i' <> long "dir-in" <> value "_templates" <> showDefault <> metavar "DIR" <> help "input directory for HTML templates")
 outDirP = strOption (short 'o' <> long "dir-out" <> value "_site" <> showDefault <> metavar "DIR" <>help "output directory")
