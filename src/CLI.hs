@@ -1,8 +1,11 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 module CLI (cli, Command(..)) where
 
 import Control.Applicative (Alternative (..), some, optional)
-import Options.Applicative (Parser, command, customExecParser, execParser, flag', fullDesc, header, help, helper, info, long, metavar, prefs, progDesc, short, showDefault, showHelpOnEmpty, strOption, subparser, switch, value, (<**>))
+import Options.Applicative (Parser, command, customExecParser, execParser, flag', fullDesc, header, footer, help, helper, info, long, metavar, prefs, progDesc, short, showDefault, showHelpOnEmpty, strOption, subparser, switch, value, (<**>))
+
+import GitHash
 
 import Config (Config(..))
 
@@ -22,12 +25,19 @@ import Config (Config(..))
 
 -}
 
+gi :: GitInfo
+gi = $$tGitInfoCwd
+
+  -- let gh = giHash gi
+  -- putStrLn $ unwords ["git hash :", gh]  
+
 cli :: IO Command
 cli = customExecParser p opts
   where
     p = prefs showHelpOnEmpty
-    opts = info (commandP <**> helper) (fullDesc <> progDesc desc <> header "twelve, a little static website build tool")
+    opts = info (commandP <**> helper) (fullDesc <> progDesc desc <> header "twelve, a little static website build tool" <> footer foot)
     desc = "twelve lets you build an HTML page from a collection of templates. Please refer to the README for details.\n github.com/ocramz/twelve"
+    foot = unwords ["git hash :", giHash gi]  
 
 data Command =
   Init Config

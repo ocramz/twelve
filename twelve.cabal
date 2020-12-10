@@ -29,6 +29,7 @@ library
                      , containers
                      , directory
                      , filepath
+                     , githash
                      , html-conduit
                      , megaparsec
                      , mtl
@@ -44,7 +45,7 @@ executable twelve
   hs-source-dirs:      app
   main-is:             Main.hs
   build-depends:       base
-                     , githash
+
                      , twelve
 
 test-suite spec
