@@ -6,20 +6,18 @@ Like [11ty](https://www.11ty.dev/), but this goes to 12.
 
 ## What
 
-`twelve` is a small and very simplified static site generator, inspired by 11ty.
+`twelve` is a small and simple static site generator, inspired by 11ty.
 
 
 
 
 ## Why
 
-`twelve` was created for these reasons:
+`twelve` was created to achieve these goals :
 
 * Modularity
-    
-* Betting on Haskell
-    
-* Not a framework
+
+* Ease of use
 
 ## Why, in detail
 
@@ -86,6 +84,8 @@ This means that you can develop `card1` in isolation, and even easily reuse it i
 ## Why, in full
 
 Modern websites tend to accrete large amounts of CSS annotations around their HTML tags, and a module system can help in writing easily maintainable websites from reasonably-sized components.
+
+In addition, many website build tools and templating languages try to do too much or to impose many design constraints upon the user. `twelve` aims to help without getting in the way.
 
 ## Installation
 
