@@ -47,7 +47,7 @@ This means that you can develop `card1` in isolation, and even easily reuse it i
 
 ## Build
 
-Set up your machine with the [`stack` build tool](haskellstack.org).
+Set up your machine with the [`stack` build tool](https://haskellstack.org).
 
 Then, build and copy the binary to a local `bin` directory with
 
