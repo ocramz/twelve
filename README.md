@@ -54,7 +54,9 @@ $ twelve build -f base.html
 
 ```
 $ cat _site/base.html
+```
 
+```html
 <html>
     <body>
         <ul>
