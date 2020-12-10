@@ -8,7 +8,7 @@ import Control.Applicative.Combinators (some, between, count, sepBy)
 import Control.Monad (MonadPlus (..), join, void)
 import Control.Monad.State.Lazy (MonadState (..), StateT (..), evalStateT, execStateT, runStateT)
 import Data.Bifunctor (Bifunctor (..))
-import Data.Char (digitToInt, isAlpha, isDigit, isPunctuation)
+import Data.Char (digitToInt, isAlpha, isDigit, isPunctuation, isSpace)
 import Data.Functor.Contravariant (Contravariant(..))
 import Data.String (IsString(..))
 
@@ -24,46 +24,67 @@ import Text.Megaparsec.Pos (Pos, SourcePos, initialPos, mkPos)
 -- bytestring
 import qualified Data.ByteString.Lazy as LBS (ByteString, readFile)
 -- containers
-import qualified Data.Map as M (Map)
+import qualified Data.Map as M (Map, fromList)
 -- lens
 -- import Control.Lens (Traversal', Prism, (^?), (^..), (...), over, (.~))
 -- text
-import qualified Data.Text as T (Text, pack)
+import qualified Data.Text as T (Text, all, pack, unpack)
+import qualified Data.Text.IO as T (putStrLn)
 import qualified Data.Text.Lazy as TL (toStrict, fromStrict)
 
-import Text.XML (Document(..), Element(..), Node(..), parseLBS, def, renderText)
-import Data.XML.Types (Name)
+import Text.XML (Document(..), Prologue(..), Element(..), Node(..), readFile, parseLBS, def, renderText, psDecodeEntities, decodeHtmlEntities, rsPretty, rsXMLDeclaration)
+import Data.XML.Types (Name(..))
 -- import Text.Xml.Lens (AsHtmlDocument(..), _HtmlDocument, html, name, text, texts)
 -- import Text.Xml.Lens.LowLevel (_NodeContent)
 
+import Prelude hiding (readFile)
 
--- >>> let quasiXml = "<html><br><br></html>" :: BL.ByteString
--- >>> quasiXml ^.. html ... name
--- ["br","br"]
+doc :: LBS.ByteString
+doc = "<html> <body>{{ card2.html }}</body></html>"
 
--- doc :: LBS.ByteString
--- doc = "<html><div>asdf</div><div>chuck</html>"
--- baz = doc ^.. html . texts
+docParse :: Document
+docParse =
+  Document
+    (Prologue [] Nothing [])
+    (Element (Name "html" Nothing Nothing) mempty [
+        NodeContent " ",
+        NodeElement (Element (Name "body" Nothing Nothing) mempty [NodeContent "{{ card2.html }}"])
+        ]
+      ) []
 
+hits = let (Document _ el _) = docParse in flip nodeContents el $ \t ->
+  case parsePattern t of
+    Right x -> do
+      putStrLn x
+      pure $ T.pack x
+    Left e -> error $ errorBundlePretty e
+
+-- 
 
 loadAndProcess :: [FilePath] -- ^ absolute paths of HTML files in input dir
                -> FilePath -- ^ template file to be processed
                -> IO T.Text
 loadAndProcess inPaths fp = do
   bs <- LBS.readFile fp
-  case parseLBS def bs of
+  let
+    decSetts = def { psDecodeEntities = decodeHtmlEntities }
+    encSetts = def { rsPretty = True, rsXMLDeclaration = False }
+  case parseLBS decSetts bs of
     Left e -> error $ show e -- FIXME
     Right (Document dpre el dpost) -> do
       el' <- flip nodeContents el $ \t ->
         case parsePattern t of
           Right fpIn -> do -- NB fpIn must exist in the input dir
             if fpIn `elem` inPaths
-              then loadAndProcess inPaths fpIn
+              then do
+                putStrLn $ unwords [fpIn, "found in", unwords inPaths]
+                loadAndProcess inPaths fpIn
               else error $ unwords [fpIn, "does not occur in", unwords inPaths ]
           Left _ -> pure t -- if parse fails, return original node content
+          -- Left e -> error $ errorBundlePretty e -- FIXME
       let
         doc' = Document dpre el' dpost
-        tl = renderText def doc'
+        tl = renderText encSetts doc'
       pure $ TL.toStrict tl -- this will suck, performance-wise
 
 -- | all NodeContent's
@@ -79,7 +100,11 @@ elemNodes f (Element en ea ens) = Element <$> pure en <*> pure ea <*> traverse f
 nodeContent :: Applicative f =>
                (T.Text -> f T.Text) -> Node -> f Node
 nodeContent f = \case
-  NodeContent t -> NodeContent <$> f t
+  NodeContent t ->
+    if
+      T.all isSpace t
+    then pure $ NodeContent "" -- get rid of whitespace
+    else NodeContent <$> f t
   x -> pure x
 
 
