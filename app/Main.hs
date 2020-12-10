@@ -6,8 +6,6 @@ import CLI.Init (cliInit)
 import CLI.Build (cliBuild)
 import Config (readConfig)
 
-
-
 main :: IO ()
 main = do
   comm <- cli

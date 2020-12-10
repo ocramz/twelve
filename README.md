@@ -29,25 +29,57 @@ The main rationale for this project, and its claim to enabling a modular approac
 
 `twelve` flips the templating logic of 11ty on its head : it lets you reference directly a content splice from within a container template, rather than declaring the name of a layout file from within the file containing the content splice.
 
-For example, say we want to splice the content of `card1.html` into the `body` tag of `base.html` :
+For example, say we want to splice the content of `card1.html` into some list items within `base.html` :
 
 ```html
 <!-- base.html -->
 <html>
-<body>
-{{ card1.html }}
-</body>
+    <body>
+        <ul>
+            <li> {{ card1.html }} </li>
+            <li> {{ card1.html }} </li>
+        </ul>
+    </body>
 </html>
 ```
 
 ```html
 <!-- card1.html -->
-<ul>
-<li> Hello from card 1 ! </li>
-</ul>
+<div>Hello from card 1 ! </div>
 ```
 
-This means that you can develop `card1` in isolation, and even easily reuse it in multiple places within `base` or other files that mention it.
+```
+$ twelve build -f base.html
+```
+
+```
+$ cat _site/base.html
+
+<html>
+    <body>
+        <ul>
+            <li>
+                <div>
+                    Hello from card 1 !
+                </div>
+            </li>
+            <li>
+                <div>
+                    Hello from card 1 !
+                </div>
+            </li>
+        </ul>
+    </body>
+</html>
+```
+
+This means that you can develop `card1` in isolation, and even easily reuse it in multiple places within `base` or other files that mention it. 
+
+### Note
+
+* Template files should be valid HTML splices, i.e. cannot be bare text.
+
+* Template files can reference other ones up to an arbitrary depth, as long as the reference graph is acyclic. If you do have two templates that reference each other, well, you're asking for trouble.
 
 ## Why, in full
 
