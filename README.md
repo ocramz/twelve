@@ -21,7 +21,7 @@ Like [11ty](https://www.11ty.dev/), but this goes to 12.
 
 ## Why, in detail
 
-The main rationale for this project, and its claim to offering modularity to website assembly, can be explained as follows:
+The main rationale for this project, and its claim to enabling a modular approach in website construction, is the following :
 
 `twelve` flips the templating logic of 11ty on its head : it lets you reference directly a content splice from within a container template, rather than declaring the name of a layout file from within the file containing the content splice.
 
@@ -46,3 +46,15 @@ Say you have `base.html` and `card1.html` :
 ```
 
 This means that you can develop `card1` in isolation, and even easily reuse it in multiple places within `base` or other files that mention it.
+
+## Build
+
+Set up your machine with the [`stack` build tool](haskellstack.org).
+
+Then, build and copy the binary to a local `bin` directory with
+
+    $ stack install
+    
+## Contribute
+
+The aim of this project is to be simple and straightforward to use; PRs welcome ! 

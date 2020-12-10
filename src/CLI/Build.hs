@@ -7,7 +7,7 @@ import System.Directory (makeAbsolute, listDirectory)
 import System.FilePath.Posix (takeExtension, (</>), replaceDirectory)
 
 import Data.Text (Text)
-import Data.Text.IO (writeFile)
+import Data.Text.Lazy.IO (writeFile)
 
 import Text.Html (loadAndProcess)
 
