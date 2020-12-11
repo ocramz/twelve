@@ -73,13 +73,13 @@ $ cat _site/base.html
 </html>
 ```
 
-This means that you can develop `card1` in isolation, and even easily reuse it in multiple places within `base` or other files that mention it. 
+This means that you can develop webpage sections in isolation (e.g. navbar, hero sections etc.), and easily reuse them in multiple places within `base` or other files that mention them. 
 
 ### Note
 
 * Template files should be valid HTML splices, i.e. cannot be bare text.
 
-* All input files should have an `.html` file extension.
+* All input files and templates should have an `.html` file extension.
 
 * Template files can reference other ones up to an arbitrary depth, as long as the reference graph is acyclic. If you do have two templates that reference each other, well, you're asking for trouble.
 
