@@ -51,16 +51,22 @@ loadAndProcess cfg inPaths fp = do
 -- | expand the element by dereferencing its internal pointers
 expand :: Foldable t =>
           Config -> t FilePath -> ParseSettings -> Element -> IO Element
-expand cfg@(CD dirIn _) inPaths psetts el = expandElement el $ \t ->
+expand cfg@(CD dirIn _) inPaths psetts el = expandElementL el $ \t ->
   case parseMatch psetts (TL.fromStrict t) of
-    MatchText tl -> pure $ NodeContent $ TL.toStrict tl
+    MatchText tl -> pure [NodeContent $ TL.toStrict tl]
     MatchRef fpIn -> do
       fpInAbs <- makeAbsolute (dirIn </> fpIn)
       if fpInAbs `elem` inPaths
-        then NodeElement <$> loadElementH cfg inPaths fpInAbs
+        then
+          do
+            let
+              ncStart = NodeComment $ T.pack fpIn
+              ncEnd = NodeComment (T.pack $ unwords [fpIn, "END"])
+            n <- NodeElement <$> loadElementH cfg inPaths fpInAbs
+            pure [ncStart, n, ncEnd]
         else error $ unwords [fpInAbs, "is not present in the input directory"]
     MatchDoc (Document _ elInner _) ->
-      NodeElement <$> expand cfg inPaths psetts elInner
+      (\x -> [NodeElement x]) <$> expand cfg inPaths psetts elInner
 
 
 -- | Load an Element from a file path
@@ -93,46 +99,58 @@ parseMatch :: ParseSettings -- ^ settings to the XHTML parser
            -> TL.Text -- ^ text to be parsed
            -> Match
 parseMatch opts tl = case parseText opts tl of
-  Left _ -> case parse stachePatternP "" (TL.toStrict tl) of
+  Left _ -> case parse htmlRefP "" (TL.toStrict tl) of
     Left _ -> MatchText tl
     Right fp -> MatchRef fp
   Right hdoc -> MatchDoc hdoc
 
-expandNode :: Applicative f =>
-              (T.Text -> f Node)  -- ^ references are expanded into ASTs
-           -> Node -> f Node
-expandNode f = \case
+-- expandNode :: Applicative f =>
+--               (T.Text -> f Node)  -- ^ references are expanded into ASTs
+--            -> Node -> f Node
+-- expandNode f = \case
+--   NodeElement (Element n a ns) ->
+--     NodeElement <$> (Element <$> pure n <*> pure a <*> traverse (expandNode f) ns)
+--   NodeContent t ->
+--     if T.all isSpace t
+--     then pure $ NodeContent "" -- get rid of whitespace
+--     else f t
+--   x -> pure x
+
+-- expandElement :: Applicative f =>
+--                  Element -> (T.Text -> f Node) -> f Element
+-- expandElement (Element en ea ens) f =
+--   Element <$> pure en <*> pure ea <*> traverse (expandNode f) ens
+
+
+
+expandElementL :: Monad f =>
+                  Element -> (T.Text -> f [Node]) -> f Element
+expandElementL (Element en ea ens) f =
+  Element <$> pure en <*> pure ea <*> concatMapM (expandNodeL f) ens
+
+expandNodeL :: Applicative f =>
+               (T.Text -> f [Node]) -> Node -> f [Node]
+expandNodeL f = \case
   NodeElement (Element n a ns) ->
-    NodeElement <$> (Element <$> pure n <*> pure a <*> traverse (expandNode f) ns)
+    (\x -> [NodeElement x]) <$> (Element <$> pure n <*> pure a <*> concatMapM (expandNodeL f) ns)
+
   NodeContent t ->
     if T.all isSpace t
-    then pure $ NodeContent "" -- get rid of whitespace
+    then pure [NodeContent ""] -- get rid of whitespace and newlines
     else f t
-  x -> pure x
-
-expandElement :: Applicative f =>
-                 Element -> (T.Text -> f Node) -> f Element
-expandElement (Element en ea ens) f =
-  Element <$> pure en <*> pure ea <*> traverse (expandNode f) ens
+  x -> pure [x]
 
 
--- | all NodeContent's
-nodeContents :: Applicative f =>
-         Element -> (T.Text -> f T.Text) -> f Element
-nodeContents (Element en ea ens) f =
-  Element <$> pure en <*> pure ea <*> traverse goNodes ens
-  where
-    goNodes = \case
-      NodeElement (Element n a ns) ->
-        NodeElement <$> (Element <$> pure n <*> pure a <*> traverse goNodes ns)
-      NodeContent t ->
-        if T.all isSpace t
-        then pure $ NodeContent "" -- get rid of whitespace
-        else NodeContent <$> f t
-      x -> pure x
 
-stachePatternP :: Parser FilePath
-stachePatternP = stache htmlP
+
+
+-- | Parse a 'stache pattern and extract the .html filename from within
+--
+-- e.g.
+--
+-- {{ main.html }}
+htmlRefP :: Parser FilePath
+htmlRefP = stache htmlP
 
 -- | parse only ".html" filenames
 htmlP :: Parser FilePath
@@ -165,6 +183,15 @@ spaceConsumer = L.space space1 lineC blockC
 type Parser = Parsec Void T.Text
 
 type ParseE = ParseErrorBundle T.Text Void
+
+
+
+
+-- | A version of 'concatMap' that works with an applicative predicate.
+concatMapM :: Applicative m => (a -> m [b]) -> [a] -> m [b]
+concatMapM f xs = concat <$> traverse f xs
+{-# INLINE concatMapM #-}
+
 
 
 
