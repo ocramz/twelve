@@ -1,14 +1,14 @@
 name:                twelve
 version:             0.1.0.0
 synopsis:            Like 11ty, but this goes up to 12
--- description:
+description:         twelve is a simple build tool for composing static websites from templates. Please see README for full details
 homepage:            https://github.com/ocramz/twelve
 license:             BSD3
 license-file:        LICENSE
 author:              Marco Zocca
 maintainer:          ocramz
 copyright:           2020 Marco Zocca
-category:            HTML
+category:            HTML Web Compilers/Interpreters
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10

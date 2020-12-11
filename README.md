@@ -93,10 +93,15 @@ In addition, many website build tools and templating languages try to do too muc
 
 First, you need to have the [`stack` build tool](https://haskellstack.org) already set up on your machine.
 
-Then, build and copy the binary to a local `bin` directory with
+Then, build and copy the `twelve` binary to a local `bin` directory with
 
     $ stack install
     
+You can see where the tool will be installed with 
+
+    $ stack path --local-bin
+    
+Please refer to the `stack` manual for details.
     
 ## Usage
 
