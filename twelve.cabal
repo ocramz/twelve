@@ -24,13 +24,17 @@ library
                        CLI.Serve
                        Config
                        Text.Html
+                       Text.JS
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , bytestring
                      , containers
                      , directory
+                     , exceptions
+                     , file-embed
                      , filepath
                      , githash
+                     , http-types
                      , megaparsec
                      , mtl
                      , optparse-applicative

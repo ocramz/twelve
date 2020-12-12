@@ -10,6 +10,9 @@ import Data.Char (isSpace)
 
 import Data.Void
 
+import Control.Monad.Catch (MonadThrow(..), MonadCatch(..))
+import GHC.Exception (SomeException(..), Exception(..))
+
 -- megaparsec
 import Text.Megaparsec ( Parsec, ParsecT, parse, parseTest, runParserT, satisfy)
 import Text.Megaparsec.Char (space1)
@@ -86,6 +89,10 @@ loadDoc fp = do
   case parseText decSetts tl0 of
     Right hdoc -> pure hdoc
     Left e -> error $ unwords ["Error while attempting to parse", fp, ":", show e]
+
+data Error =
+  EFileNotFound FilePath
+  | ECannotParseFilePath SomeException FilePath
 
 
 data Match =

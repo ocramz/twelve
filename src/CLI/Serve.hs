@@ -5,6 +5,7 @@ module CLI.Serve (cliServe) where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (void, forever)
+import Control.Monad.IO.Class (MonadIO(..))
 -- wai=extra
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 -- wai-middleware-static
@@ -13,8 +14,10 @@ import System.Directory (makeAbsolute)
 import System.FilePath (takeDirectory)
 -- containers
 import qualified Data.Map as M (Map, fromList)
+-- http-types
+import Network.HTTP.Types (Status, status400)
 -- scotty
-import Web.Scotty (scotty, scottyOpts, Options(..), get, middleware, html)
+import Web.Scotty (scotty, scottyOpts, Options(..), notFound, get, redirect, middleware, html, status, defaultHandler)
 -- text
 import qualified Data.Text as T (Text, pack)
 import qualified Data.Text.Lazy as TL (Text)
@@ -27,19 +30,17 @@ import Text.XML (ParseSettings, Document(..), Element(..), Node(..), parseText, 
 import Data.XML.Types (Name(..))
 
 import Text.Html (loadDoc)
+import Text.JS (liveJS)
 
 
 -- liveJs :: TL.Text
 -- liveJs = "<script type=\"text/javascript\" src=\"http://livejs.com/live.js\"></script>"
 
 liveJsNode :: Node
-liveJsNode = NodeElement $ Element n attrs []
+liveJsNode = NodeElement $ Element n mempty [node]
   where
     n = Name "script" Nothing Nothing
-    attrs = M.fromList [
-      (Name "src" Nothing Nothing, "http://livejs.com/live.js"),
-      (Name "type" Nothing Nothing, "text/javascript")
-      ]
+    node = NodeContent liveJS
 
 modifyHeadNode :: ([Node] -> [Node]) -> Element -> Element
 modifyHeadNode f (Element n a ns)
@@ -64,9 +65,13 @@ injectLiveJs fp = do
 
 cliServe :: Port -> FilePath -> IO ()
 cliServe p fp = do
-  tl' <- injectLiveJs fp
   putStrLn $ unwords ["twelve : serving", fp ]
-  scotty  p $ do
-    get "/" $ html tl'
+  scotty p $ do
+    get "/" $ do
+      tl' <- liftIO $ injectLiveJs fp
+      html tl'
+    notFound $ status status400
+
+
 
 
