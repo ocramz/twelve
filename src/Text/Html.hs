@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# language LambdaCase #-}
-{-# options_ghc -Wno-unused-imports #-}
-module Text.Html where
+{-# options_ghc -Wno-unused-imports -Wno-unused-top-binds #-}
+module Text.Html (loadAndProcess, loadDoc) where
 
 import Control.Applicative (Alternative (..))
 import Control.Applicative.Combinators (between)

@@ -27,9 +27,9 @@ library
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , bytestring
+                     , containers
                      , directory
                      , filepath
-                     , fsnotify
                      , githash
                      , megaparsec
                      , mtl
