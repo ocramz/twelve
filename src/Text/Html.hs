@@ -40,7 +40,7 @@ import Prelude hiding (readFile)
 loadAndProcess :: Foldable t =>
                   Config -> t FilePath -> FilePath -> IO TL.Text
 loadAndProcess cfg inPaths fp = do
-  (Document dpre el dpost) <- loadDoc cfg fp
+  (Document dpre el dpost) <- loadDoc fp
   let
     decSetts = def { psDecodeEntities = decodeHtmlEntities }
     encSetts = def { rsPretty = True, rsXMLDeclaration = False }
@@ -73,15 +73,14 @@ expand cfg@(CD dirIn _) inPaths psetts el = expandElementL el $ \t ->
 loadElementH :: Foldable t =>
                 Config -> t FilePath -> FilePath -> IO Element
 loadElementH cfg inPaths fp = do
-  (Document _ el _) <- loadDoc cfg fp
+  (Document _ el _) <- loadDoc (inputDir cfg </> fp)
   let
     decSetts = def { psDecodeEntities = decodeHtmlEntities }
   expand cfg inPaths decSetts el
 
-loadDoc :: Config -> FilePath -> IO Document
-loadDoc (CD dirIn _) fp = do
-  let fpRel = dirIn </> fp
-  tl0 <- TL.readFile fpRel
+loadDoc :: FilePath -> IO Document
+loadDoc fp = do
+  tl0 <- TL.readFile fp
   let
     decSetts = def { psDecodeEntities = decodeHtmlEntities }
   case parseText decSetts tl0 of
