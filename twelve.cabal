@@ -21,6 +21,7 @@ library
   exposed-modules:     CLI
                        CLI.Init
                        CLI.Build
+                       CLI.Serve
                        Config
                        Text.Html
   build-depends:       base >= 4.7 && < 5
@@ -28,12 +29,17 @@ library
                      , bytestring
                      , directory
                      , filepath
+                     , fsnotify
                      , githash
                      , megaparsec
                      , mtl
                      , optparse-applicative
                      , parser-combinators
+                     , scotty
                      , text
+                     , wai-extra
+                     , wai-middleware-static
+                     , warp
                      , xml-conduit
                      , xml-types
 

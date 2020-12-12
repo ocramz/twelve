@@ -3,7 +3,8 @@
 module CLI (cli, Command(..)) where
 
 import Control.Applicative (Alternative (..), some, optional)
-import Options.Applicative (Parser, command, customExecParser, execParser, flag', fullDesc, header, footer, help, helper, info, long, metavar, prefs, progDesc, short, showDefault, showHelpOnEmpty, strOption, subparser, switch, value, (<**>))
+import Options.Applicative (Parser, command, customExecParser, execParser, flag', fullDesc, header, footer, help, helper, info, long, metavar, prefs, progDesc, short, showDefault, showHelpOnEmpty, auto, option, strOption, subparser, switch, value, (<**>))
+import Network.Wai.Handler.Warp (Port)
 
 import GitHash
 
@@ -29,7 +30,7 @@ gi :: GitInfo
 gi = $$tGitInfoCwd
 
   -- let gh = giHash gi
-  -- putStrLn $ unwords ["git hash :", gh]  
+  -- putStrLn $ unwords ["git hash :", gh]
 
 cli :: IO Command
 cli = customExecParser p opts
@@ -42,15 +43,18 @@ cli = customExecParser p opts
 data Command =
   Init Config
   | Build (Maybe Config) FilePath
+  | Serve Port FilePath
 
 commandP :: Parser Command
 commandP = subparser (
   command "init" (info initP (progDesc "Initialize a 'twelve' project")) <>
-  command "build" (info buildP (progDesc "Build an HTML page"))
+  command "build" (info buildP (progDesc "Build an HTML page")) <>
+  command "serve" (info serveP (progDesc "Serve a file and reload at any changes"))
          )
   where
     initP = Init <$> configP
     buildP = Build <$> optional configP <*> cliFileP
+    serveP = Serve <$> portP <*> cliFileP
 
 
 cliFileP :: Parser FilePath
@@ -58,6 +62,10 @@ cliFileP =
   strOption (
     short 'f' <> metavar "FILEPATH" <> help "path of input file"
             )
+
+portP :: Parser Port
+portP = option auto (
+  short 'p' <> long "port" <> metavar "PORT" <> showDefault <> value 3000)
 
 configP :: Parser Config
 configP = CD <$> inDirP <*> outDirP
