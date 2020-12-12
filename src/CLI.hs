@@ -29,8 +29,6 @@ import Config (Config(..))
 gi :: GitInfo
 gi = $$tGitInfoCwd
 
-  -- let gh = giHash gi
-  -- putStrLn $ unwords ["git hash :", gh]
 
 cli :: IO Command
 cli = customExecParser p opts
@@ -49,7 +47,7 @@ commandP :: Parser Command
 commandP = subparser (
   command "init" (info initP (progDesc "Initialize a 'twelve' project")) <>
   command "build" (info buildP (progDesc "Build an HTML page")) <>
-  command "serve" (info serveP (progDesc "Serve a file and reload at any changes"))
+  command "serve" (info serveP (progDesc "Serve a file"))
          )
   where
     initP = Init <$> configP

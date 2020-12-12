@@ -15,7 +15,7 @@ import System.FilePath (takeDirectory)
 -- containers
 import qualified Data.Map as M (Map, fromList)
 -- http-types
-import Network.HTTP.Types (Status, status400)
+import Network.HTTP.Types (Status, status404)
 -- scotty
 import Web.Scotty (scotty, scottyOpts, Options(..), notFound, get, redirect, middleware, html, status, defaultHandler)
 -- text
@@ -67,10 +67,15 @@ cliServe :: Port -> FilePath -> IO ()
 cliServe p fp = do
   putStrLn $ unwords ["twelve : serving", fp ]
   scotty p $ do
-    get "/" $ do
-      tl' <- liftIO $ injectLiveJs fp
-      html tl'
-    notFound $ status status400
+    middleware logStdoutDev
+    -- get "/" $ do
+    --   tl' <- liftIO $ injectLiveJs fp
+    --   html tl'
+    middleware $ staticPolicy $ only [
+      ("/", fp),
+      ("", fp)
+                                     ]
+    notFound $ status status404
 
 
 
