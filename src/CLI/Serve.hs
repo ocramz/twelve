@@ -9,7 +9,7 @@ import Control.Monad.IO.Class (MonadIO(..))
 -- wai=extra
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 -- wai-middleware-static
-import Network.Wai.Middleware.Static (static, Policy, staticPolicy, only, tryPolicy)
+import Network.Wai.Middleware.Static (static, Policy, staticPolicy, only, tryPolicy, (<|>), hasPrefix)
 import System.Directory (makeAbsolute)
 import System.FilePath (takeDirectory)
 -- containers
@@ -71,11 +71,13 @@ cliServe p fp = do
     -- get "/" $ do
     --   tl' <- liftIO $ injectLiveJs fp
     --   html tl'
-    middleware $ staticPolicy $ only [
-      ("/", fp),
-      ("", fp)
-                                     ]
+    middleware $ staticPolicy $ cssPolicy <|> rootPolicy
     notFound $ status status404
+      where
+        cssPolicy = hasPrefix "/css"
+        rootPolicy = only [
+          ("/", fp),
+          ("", fp) ]
 
 
 
