@@ -7,9 +7,9 @@ import Control.Concurrent (threadDelay)
 import Control.Monad (void, forever)
 import Control.Monad.IO.Class (MonadIO(..))
 -- wai=extra
-import Network.Wai.Middleware.RequestLogger (logStdoutDev)
+import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
 -- wai-middleware-static
-import Network.Wai.Middleware.Static (static, Policy, staticPolicy, only, tryPolicy, (<|>), hasPrefix)
+import Network.Wai.Middleware.Static (static, Policy, staticPolicy, only, tryPolicy, (<|>), hasPrefix, addBase)
 import System.Directory (makeAbsolute)
 import System.FilePath (takeDirectory)
 -- containers
@@ -71,10 +71,13 @@ cliServe p fp = do
     -- get "/" $ do
     --   tl' <- liftIO $ injectLiveJs fp
     --   html tl'
-    middleware $ staticPolicy $ cssPolicy <|> rootPolicy
-    notFound $ status status404
+
+    middleware $ staticPolicy (rootPolicy <|> inDir)
+    
+    -- middleware $ staticPolicy $ cssPolicy <|> rootPolicy
+    -- -- notFound $ status status404
       where
-        cssPolicy = hasPrefix "/css"
+        inDir = addBase (takeDirectory fp)
         rootPolicy = only [
           ("/", fp),
           ("", fp) ]
