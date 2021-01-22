@@ -28,13 +28,13 @@ jobs:
         sudo cp crtbeginT.o crtbeginT.o.orig
         sudo cp crtbeginS.o crtbeginT.o
 
-    - name: Build and compress artifact # build the binary
+    - name: Build artifact # build the binary
       id: build_artifact
       env:
         ARTIFACTS_DIR: artifacts
       run: |
         mkdir $ARTIFACTS_DIR
-        stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread'
+        stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread' --no-interleaved-output
 
     - name: Create a Release
       id: create_release
@@ -54,7 +54,7 @@ jobs:
         ARTIFACTS_DIR: artifacts
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing its ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./$ARTIFACTS_DIR/twelve
+        asset_path: $ARTIFACTS_DIR/twelve
         asset_name: twelve
         asset_content_type: application/octet-stream
 
