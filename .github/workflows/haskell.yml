@@ -26,15 +26,15 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
-        tag_name: ${{ github.ref }}
+        tag_name: tag_${{ github.ref }}
         # The name of the release. For example, `Release v1.0.1`
         release_name: release_${{ github.ref }}
 
     - name: static linking hack
       working-directory: /usr/lib/gcc/x86_64-linux-gnu/7/
       run: |
-        cp crtbeginT.o crtbeginT.o.orig
-        cp crtbeginS.o crtbeginT.o
+        sudo cp crtbeginT.o crtbeginT.o.orig
+        sudo cp crtbeginS.o crtbeginT.o
         
     - name: Build artifact # build the binary
       id: build_artifact
