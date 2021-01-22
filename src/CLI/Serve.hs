@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# options_ghc -Wno-unused-imports #-}
+{-# options_ghc -Wno-unused-top-binds #-}
 module CLI.Serve (cliServe) where
 
 import Control.Concurrent (threadDelay)
