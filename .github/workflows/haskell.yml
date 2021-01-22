@@ -35,15 +35,14 @@ jobs:
       run: |
         sudo cp crtbeginT.o crtbeginT.o.orig
         sudo cp crtbeginS.o crtbeginT.o
-        
-    - name: Build artifact # build the binary
+
+    - name: Build and compress artifact # build the binary
       id: build_artifact
       env:
         ARTIFACTS_DIR: artifacts
       run: |
         mkdir $ARTIFACTS_DIR
-        stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread' 
-        zip --junk-paths README.md $ARTIFACTS_DIR/twelve
+        stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread'
         
     - name: Upload Release Asset
       id: upload-release-asset 
@@ -53,7 +52,29 @@ jobs:
         ARTIFACTS_DIR: artifacts
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./$ARTIFACTS_DIR/twelve.zip
-        asset_name: twelve.zip
-        asset_content_type: application/zip
+        asset_path: ./$ARTIFACTS_DIR/twelve
+        asset_name: twelve
+        asset_content_type: application/octet-stream
+
+
+    # - name: Build and compress artifact # build the binary
+    #   id: build_artifact
+    #   env:
+    #     ARTIFACTS_DIR: artifacts
+    #   run: |
+    #     mkdir $ARTIFACTS_DIR
+    #     stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread' 
+    #     zip --junk-paths ./README.md $ARTIFACTS_DIR/twelve
+        
+    # - name: Upload Release Asset
+    #   id: upload-release-asset 
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #     ARTIFACTS_DIR: artifacts
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+    #     asset_path: ./$ARTIFACTS_DIR/twelve.zip
+    #     asset_name: twelve.zip
+    #     asset_content_type: application/zip
 
