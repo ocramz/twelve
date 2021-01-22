@@ -29,7 +29,7 @@ jobs:
         # The name of the release. For example, `Release v1.0.1`
         release_name: release_${{ github.ref }}
         
-    - name: Build artifact # This would actually build your project, using zip for an example artifact
+    - name: Build artifact # build the binary
       id: build_artifact
       env:
         ARTIFACTS_DIR: artifacts
