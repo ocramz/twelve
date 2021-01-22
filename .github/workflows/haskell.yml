@@ -20,15 +20,7 @@ jobs:
         ghc-version: '8.8.4'
         cabal-version: '3.0'
     
-    - name: Create a Release
-      id: create_release
-      uses: actions/create-release@v1.1.4
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-      with:
-        tag_name: tag_${{ github.ref }}
-        # The name of the release. For example, `Release v1.0.1`
-        release_name: release_${{ github.ref }}
+    
 
     - name: static linking hack
       working-directory: /usr/lib/gcc/x86_64-linux-gnu/7/
@@ -43,6 +35,16 @@ jobs:
       run: |
         mkdir $ARTIFACTS_DIR
         stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread'
+
+    - name: Create a Release
+      id: create_release
+      uses: actions/create-release@v1.1.4
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: tag_${{ github.ref }}
+        # The name of the release. For example, `Release v1.0.1`
+        release_name: release_${{ github.ref }}
         
     - name: Upload Release Asset
       id: upload-release-asset 
