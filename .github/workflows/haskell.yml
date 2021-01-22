@@ -29,6 +29,12 @@ jobs:
         tag_name: ${{ github.ref }}
         # The name of the release. For example, `Release v1.0.1`
         release_name: release_${{ github.ref }}
+
+    - name: static linking hack
+      working-directory: /usr/lib/gcc/x86_64-linux-gnu/7/
+      run: |
+        cp crtbeginT.o crtbeginT.o.orig
+        cp crtbeginS.o crtbeginT.o
         
     - name: Build artifact # build the binary
       id: build_artifact
