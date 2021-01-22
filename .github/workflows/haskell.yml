@@ -43,7 +43,7 @@ jobs:
       run: |
         mkdir $ARTIFACTS_DIR
         stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread' 
-        zip $ARTIFACTS_DIR/twelve
+        zip --junk-paths README.md $ARTIFACTS_DIR/twelve
         
     - name: Upload Release Asset
       id: upload-release-asset 
