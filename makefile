@@ -17,7 +17,7 @@ clean:
 
 # 1) build the development image
 docker-dev-build:
-	docker build -t ${IMAGE_DEV} docker/dev
+	docker build -t ${IMAGE_DEV} .
 
 dkr-install:
 	stack install --docker --no-interleaved-output --resolver ${STACK_RESOLVER} --local-bin-path ${ARTIFACTS_DEPLOY_DIR}
