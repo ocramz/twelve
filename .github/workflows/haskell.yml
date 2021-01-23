@@ -33,7 +33,7 @@ jobs:
       run: |
         mkdir $ARTIFACTS_DIR
         stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread' --no-interleaved-output
-        tar --strip-components -cvf artifacts.tar $ARTIFACTS_DIR
+        tar cvf --strip-components=6 artifacts.tar $ARTIFACTS_DIR
 
     # - uses: actions/upload-artifact@v2
     #   with:
