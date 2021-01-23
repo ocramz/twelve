@@ -34,11 +34,11 @@ jobs:
         stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread' --no-interleaved-output
         tar cvf artifacts.tar $ARTIFACTS_DIR
 
-    - name: Release
+    - name: Create release and upload artifact
       uses: softprops/action-gh-release@v1
-      # if: startsWith(github.ref, 'refs/tags/')
       with:
         files: artifacts.tar
+        name: twelve-${{ github.sha }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
