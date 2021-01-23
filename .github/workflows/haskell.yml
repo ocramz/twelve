@@ -39,6 +39,7 @@ jobs:
       with:
         files: artifacts.tar
         name: twelve-${{ github.sha }}
+        tag-name: tag-${{ github.ref }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
