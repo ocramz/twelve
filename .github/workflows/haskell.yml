@@ -35,10 +35,6 @@ jobs:
         stack install --local-bin-path $ARTIFACTS_DIR --ghc-options='-fPIC -optl-static -optl-pthread' --no-interleaved-output
         tar cvf artifacts.tar $ARTIFACTS_DIR
 
-    # - uses: actions/upload-artifact@v2
-    #   with:
-    #     path: artifacts.tar
-
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
