@@ -1,5 +1,5 @@
 name:                twelve
-version:             0.2.0.0
+version:             0.3.0.0
 synopsis:            Like 11ty, but this goes up to 12
 description:         twelve is a simple build tool for composing static websites from templates. Please see README for full details
 homepage:            https://github.com/ocramz/twelve
@@ -34,6 +34,7 @@ library
                      , file-embed
                      , filepath
                      , githash
+                     , html-conduit
                      , http-types
                      , megaparsec
                      , mtl

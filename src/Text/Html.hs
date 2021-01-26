@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# language LambdaCase #-}
-{-# options_ghc -Wno-unused-imports -Wno-unused-top-binds #-}
+-- {-# options_ghc -Wno-unused-imports -Wno-unused-top-binds #-}
 module Text.Html (loadAndProcess, loadDoc) where
 
 import Control.Applicative (Alternative (..))
@@ -23,6 +23,8 @@ import Text.Megaparsec.Error (ParseErrorBundle (..), errorBundlePretty)
 import System.Directory (makeAbsolute)
 -- filepath
 import System.FilePath.Posix (takeExtension, (</>))
+-- html-conduit
+import Text.HTML.DOM (parseLT)
 
 -- text
 import qualified Data.Text as T (Text, all, pack, unpack)
@@ -30,6 +32,7 @@ import qualified Data.Text.IO as T (putStrLn)
 import qualified Data.Text.Lazy as TL (Text, toStrict, fromStrict)
 import qualified Data.Text.Lazy.IO as TL (readFile, putStrLn)
 
+-- xml-conduit
 import Text.XML (ParseSettings, Document(..), Element(..), Node(..), parseText, def, renderText, psDecodeEntities, decodeHtmlEntities, rsPretty, rsXMLDeclaration)
 import Data.XML.Types (Name(..))
 
@@ -82,17 +85,19 @@ loadElementH cfg inPaths fp = do
   expand cfg inPaths decSetts el
 
 loadDoc :: FilePath -> IO Document
-loadDoc fp = do
-  tl0 <- TL.readFile fp
-  let
-    decSetts = def { psDecodeEntities = decodeHtmlEntities }
-  case parseText decSetts tl0 of
-    Right hdoc -> pure hdoc
-    Left e -> error $ unwords ["Error while attempting to parse", fp, ":", show e]
+loadDoc fp = parseLT <$> TL.readFile fp
+  -- tl0 <- TL.readFile fp
+  -- pure $ parseLT tl0
+  -- let
+  --   decSetts = def { psDecodeEntities = decodeHtmlEntities }
+  -- case parseText decSetts tl0 of
+  -- case parseLT tl0 of
+  --   Right hdoc -> pure hdoc
+  --   Left e -> error $ unwords ["Error while attempting to parse", fp, ":", show e]
 
-data Error =
-  EFileNotFound FilePath
-  | ECannotParseFilePath SomeException FilePath
+-- data Error =
+--   EFileNotFound FilePath
+--   | ECannotParseFilePath SomeException FilePath
 
 
 data Match =
