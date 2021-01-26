@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# language LambdaCase #-}
--- {-# options_ghc -Wno-unused-imports -Wno-unused-top-binds #-}
+{-# options_ghc -Wno-unused-imports -Wno-unused-top-binds #-}
 module Text.Html (loadAndProcess, loadDoc) where
 
 import Control.Applicative (Alternative (..))
@@ -86,14 +86,6 @@ loadElementH cfg inPaths fp = do
 
 loadDoc :: FilePath -> IO Document
 loadDoc fp = parseLT <$> TL.readFile fp
-  -- tl0 <- TL.readFile fp
-  -- pure $ parseLT tl0
-  -- let
-  --   decSetts = def { psDecodeEntities = decodeHtmlEntities }
-  -- case parseText decSetts tl0 of
-  -- case parseLT tl0 of
-  --   Right hdoc -> pure hdoc
-  --   Left e -> error $ unwords ["Error while attempting to parse", fp, ":", show e]
 
 -- data Error =
 --   EFileNotFound FilePath
@@ -115,22 +107,7 @@ parseMatch opts tl = case parseText opts tl of
     Right fp -> MatchRef fp
   Right hdoc -> MatchDoc hdoc
 
--- expandNode :: Applicative f =>
---               (T.Text -> f Node)  -- ^ references are expanded into ASTs
---            -> Node -> f Node
--- expandNode f = \case
---   NodeElement (Element n a ns) ->
---     NodeElement <$> (Element <$> pure n <*> pure a <*> traverse (expandNode f) ns)
---   NodeContent t ->
---     if T.all isSpace t
---     then pure $ NodeContent "" -- get rid of whitespace
---     else f t
---   x -> pure x
 
--- expandElement :: Applicative f =>
---                  Element -> (T.Text -> f Node) -> f Element
--- expandElement (Element en ea ens) f =
---   Element <$> pure en <*> pure ea <*> traverse (expandNode f) ens
 
 
 
