@@ -2,7 +2,9 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 module CLI (cli, Command(..)) where
 
-import Control.Applicative (Alternative (..), some, optional)
+import Control.Applicative (Alternative (..), some, many, optional)
+import qualified Data.List.NonEmpty as NE (NonEmpty, nonEmpty)
+-- optparse-applicative
 import Options.Applicative (Parser, command, customExecParser, execParser, flag', fullDesc, header, footer, help, helper, info, long, metavar, prefs, progDesc, short, showDefault, showHelpOnEmpty, auto, option, strOption, subparser, switch, value, (<**>))
 import Network.Wai.Handler.Warp (Port)
 
@@ -40,20 +42,22 @@ cli = customExecParser p opts
 
 data Command =
   Init Config
-  | Build (Maybe Config) FilePath
+  | Build (Maybe Config) [FilePath]
   | Serve Port FilePath
 
 commandP :: Parser Command
 commandP = subparser (
   command "init" (info initP (progDesc "Initialize a 'twelve' project")) <>
-  command "build" (info buildP (progDesc "Build an HTML page")) <>
+  command "build" (info buildP (progDesc "Build one or more HTML pages")) <>
   command "serve" (info serveP (progDesc "Serve a file"))
          )
   where
     initP = Init <$> configP
-    buildP = Build <$> optional configP <*> cliFileP
+    buildP = Build <$> optional configP <*> cliFilesP
     serveP = Serve <$> portP <*> cliFileP
 
+cliFilesP :: Parser [FilePath]
+cliFilesP = many cliFileP
 
 cliFileP :: Parser FilePath
 cliFileP = 
